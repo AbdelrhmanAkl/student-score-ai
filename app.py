@@ -1,5 +1,6 @@
 from pathlib import Path
 
+import altair as alt
 import joblib
 import numpy as np
 import pandas as pd
@@ -13,11 +14,15 @@ MODEL_PATH = ROOT / "models" / "studentscore_ridge_model.joblib"
 DATA_PATH = ROOT / "data" / "StudentPerformanceFactors.csv"
 GITHUB_URL = "https://github.com/AbdelrhmanAkl/student-score-ai"
 
+# Palette — calm, warm neutrals with a single deep-teal accent
+INK, MUTED, LINE = "#14201F", "#6B7673", "#E6E3DC"
+ACCENT, SOFT, TERRA = "#0F766E", "#E6F2EF", "#B4533C"
+
 st.set_page_config(
     page_title="StudentScore AI",
     page_icon="🎓",
     layout="wide",
-    initial_sidebar_state="collapsed",
+    initial_sidebar_state="expanded",
 )
 
 # ----------------------------------------------------------------------------
@@ -26,85 +31,80 @@ st.set_page_config(
 st.markdown(
     """
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Instrument+Serif&display=swap');
+
+:root {--bg:#F6F5F2; --ink:#14201F; --muted:#6B7673; --line:#E6E3DC; --accent:#0F766E; --soft:#E6F2EF;}
+html, body, .stApp {font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;}
+.stApp {background: var(--bg);}
+header[data-testid="stHeader"] {background: transparent;}
 #MainMenu, footer {visibility: hidden;}
-.stApp {background: radial-gradient(1200px 500px at 50% -80px, #e0e7ff 0%, #f8fafc 60%) fixed;}
-.block-container {padding-top: 1.4rem; padding-bottom: 3rem; max-width: 1360px;}
+.block-container {max-width: 1180px; padding-top: 2rem; padding-bottom: 4rem;}
 
-/* ---------- hero ---------- */
-.hero {
-  background: linear-gradient(115deg, #4338ca 0%, #6d28d9 50%, #be185d 115%);
-  border-radius: 28px; padding: 3rem 2.5rem 2.6rem; color: #fff; text-align: center;
-  box-shadow: 0 30px 60px -30px rgba(67,56,202,.65); position: relative; overflow: hidden;
-}
-.hero:before {
-  content: ""; position: absolute; width: 420px; height: 420px; right: -120px; top: -180px;
-  background: radial-gradient(circle, rgba(255,255,255,.22), transparent 65%);
-}
-.hero h1 {margin: 0; font-size: 3.2rem; font-weight: 800; letter-spacing: -1px; color: #fff; padding: 0;}
-.hero p {margin: .7rem auto 0; font-size: 1.2rem; opacity: .93; color: #fff; max-width: 680px;}
-.chips {margin-top: 1.4rem; display: flex; gap: .6rem; flex-wrap: wrap; justify-content: center;}
-.chip {
-  background: rgba(255,255,255,.16); border: 1px solid rgba(255,255,255,.32);
-  padding: .35rem .95rem; border-radius: 999px; font-size: .85rem; font-weight: 600; color: #fff;
-}
-
-/* ---------- stat strip ---------- */
-.stats {display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin: 1.3rem 0 .4rem;}
-.stat {
-  background: #fff; border: 1px solid #e2e8f0; border-radius: 18px; padding: 1.05rem 1.2rem;
-  box-shadow: 0 10px 28px -20px rgba(15,23,42,.35);
-}
-.stat .k {font-size: .72rem; text-transform: uppercase; letter-spacing: 1.2px; color: #64748b; font-weight: 700;}
-.stat .v {font-size: 1.55rem; font-weight: 800; color: #0f172a; margin-top: .15rem;}
-@media (max-width: 800px) {.stats {grid-template-columns: repeat(2, 1fr);} .hero h1 {font-size: 2.2rem;}}
+/* ---------- top bar & headline ---------- */
+.topbar {display:flex; justify-content:space-between; align-items:center; margin-bottom: 2.2rem;}
+.brand {display:flex; align-items:center; gap:.8rem;}
+.logo {width:38px; height:38px; border-radius:11px; background:var(--ink); color:#fff; display:flex;
+  align-items:center; justify-content:center; font-weight:700; font-size:1.05rem;}
+.brand-name {font-weight:700; color:var(--ink); font-size:1rem; line-height:1.2;}
+.brand-sub {color:var(--muted); font-size:.78rem;}
+.gh {color:var(--ink) !important; text-decoration:none !important; font-weight:600; font-size:.85rem;
+  border:1px solid var(--line); padding:.45rem .95rem; border-radius:999px; background:#fff;}
+.gh:hover {border-color:var(--accent); color:var(--accent) !important;}
+.headline {font-family:'Instrument Serif', Georgia, serif; font-size:3.4rem; line-height:1.05;
+  letter-spacing:-1px; color:var(--ink); margin:0;}
+.headline em {color:var(--accent); font-style:italic;}
+.lead {color:var(--muted); font-size:1.05rem; margin:.9rem 0 1.8rem; max-width:620px; line-height:1.55;}
 
 /* ---------- cards ---------- */
-.card {
-  background: #fff; border: 1px solid #e2e8f0; border-radius: 24px;
-  padding: 1.6rem 1.6rem; box-shadow: 0 14px 36px -22px rgba(15,23,42,.35);
+div[data-testid="stVerticalBlockBorderWrapper"]:has(.card-marker) {
+  background:#fff; border:1px solid var(--line); border-radius:20px; padding:.7rem .9rem;
+  box-shadow: 0 1px 2px rgba(20,32,31,.04), 0 12px 30px -24px rgba(20,32,31,.35);
 }
-div[data-testid="stVerticalBlockBorderWrapper"]:has(.sec-title) {
-  background: #fff; border-radius: 24px; border: 1px solid #e2e8f0;
-  box-shadow: 0 14px 36px -22px rgba(15,23,42,.35); padding: .6rem .8rem;
-}
-.sec-title {font-size: 1.15rem; font-weight: 800; color: #0f172a; margin: .2rem 0 .1rem;}
-.sec-sub {font-size: .85rem; color: #64748b; margin-bottom: .6rem;}
+.eyebrow {font-size:.72rem; text-transform:uppercase; letter-spacing:1.4px; color:var(--muted); font-weight:600;}
+.card-title {font-weight:650; font-size:1.05rem; color:var(--ink); margin:.1rem 0 .15rem;}
+.card-sub {color:var(--muted); font-size:.86rem; margin-bottom:.9rem; line-height:1.45;}
 
-.score-label {font-size: .8rem; text-transform: uppercase; letter-spacing: 1.6px; color: #64748b; font-weight: 700; text-align: center;}
-.gauge-box {position: relative; max-width: 400px; margin: .4rem auto 0;}
-.gauge-num {position: absolute; left: 0; right: 0; bottom: 2px; text-align: center;
-  font-size: 4.2rem; font-weight: 800; line-height: 1; color: #0f172a; letter-spacing: -2px;}
-.gauge-num span {font-size: 1.2rem; color: #94a3b8; font-weight: 600; letter-spacing: 0;}
-.center {text-align: center;}
-.badge {display: inline-block; margin-top: 1rem; padding: .4rem 1.2rem; border-radius: 999px; font-weight: 700; font-size: .95rem;}
-.delta {margin-top: .8rem; font-size: .95rem; color: #475569;}
+.bigscore {font-family:'Instrument Serif', Georgia, serif; font-size:6.2rem; line-height:1;
+  letter-spacing:-3px; color:var(--ink); margin:.5rem 0 .2rem;}
+.bigscore span {font-family:'Inter', sans-serif; font-size:1.15rem; color:#9AA3A0; letter-spacing:0; margin-left:.35rem; font-weight:500;}
+.pill {display:inline-block; padding:.28rem .85rem; border-radius:999px; font-weight:600; font-size:.82rem;}
+.meta {color:var(--muted); font-size:.92rem; margin-top:.9rem; line-height:1.6;}
+.meta b {color:var(--ink); font-weight:600;}
+.track {height:6px; border-radius:999px; background:#EEECE6; margin-top:1.1rem; overflow:hidden;}
+.track > div {height:100%; border-radius:999px;}
 
-.lever {display: flex; justify-content: space-between; align-items: center;
-  padding: .7rem .2rem; border-bottom: 1px dashed #e2e8f0; font-size: .98rem; color: #334155;}
-.lever:last-child {border-bottom: none;}
-.lever .gain {color: #059669; font-weight: 700; background: #ecfdf5; padding: .15rem .7rem; border-radius: 10px;}
-.section-title {font-weight: 800; color: #0f172a; margin: 0 0 .5rem; font-size: 1.1rem;}
-.muted {color: #64748b; font-size: .88rem;}
+.lv {display:grid; grid-template-columns: 1.5fr 1fr auto; gap:1rem; align-items:center;
+  padding:.8rem 0; border-bottom:1px solid #F0EEE9; font-size:.93rem; color:var(--ink);}
+.lv:last-child {border-bottom:none;}
+.lv-bar {height:6px; border-radius:999px; background:#EEECE6; overflow:hidden;}
+.lv-bar > div {height:100%; background:var(--accent); border-radius:999px;}
+.lv-g {font-weight:650; color:var(--accent); min-width:3rem; text-align:right;}
+
+.stat {background:#fff; border:1px solid var(--line); border-radius:16px; padding:1rem 1.2rem;}
+.stat .v {font-family:'Instrument Serif', Georgia, serif; font-size:2.2rem; color:var(--ink); line-height:1.1; margin-top:.2rem;}
+
+/* ---------- sidebar ---------- */
+section[data-testid="stSidebar"] {background:#fff; border-right:1px solid var(--line);}
+section[data-testid="stSidebar"][aria-expanded="true"] {min-width:370px; width:370px;}
+.side-title {font-weight:700; font-size:1.15rem; color:var(--ink); margin:0;}
+.side-sub {color:var(--muted); font-size:.84rem; margin:.15rem 0 1rem;}
+div[data-testid="stExpander"] details {border:1px solid var(--line) !important; border-radius:14px !important; background:#fff;}
+div[data-testid="stExpander"] summary {font-weight:600;}
 
 /* ---------- widgets ---------- */
-div.stButton > button {width: 100%; border-radius: 14px; font-weight: 600; padding: .6rem .8rem; border: 1px solid #c7d2fe; background: #fff;}
-div.stButton > button:hover {border-color: #6366f1; color: #4f46e5; background: #eef2ff;}
-div.stDownloadButton > button {width: 100%; border-radius: 14px; font-weight: 700; padding: .65rem; background: #4f46e5; color: #fff; border: none;}
-div.stDownloadButton > button:hover {background: #4338ca; color: #fff;}
-label p, div[data-testid="stWidgetLabel"] p {font-size: .95rem !important; font-weight: 600 !important; color: #1e293b;}
-div[data-baseweb="select"] > div {min-height: 46px; border-radius: 12px;}
-div[data-baseweb="slider"] div[role="slider"] {background-color: #6366f1 !important; box-shadow: none !important;}
-div[data-testid="stSliderThumbValue"], div[data-testid="stThumbValue"] {color: #4f46e5 !important; font-weight: 700;}
-button[data-baseweb="tab"] {font-size: 1.02rem; font-weight: 600; padding: .6rem 1.1rem;}
-div[data-baseweb="tab-highlight"] {background-color: #6366f1 !important;}
+label p, div[data-testid="stWidgetLabel"] p {font-size:.85rem !important; font-weight:550 !important; color:#2B3836;}
+div[data-baseweb="select"] > div {border-radius:10px; min-height:42px;}
+div.stButton > button {width:100%; border-radius:10px; border:1px solid var(--line); background:#fff;
+  color:var(--ink); font-weight:550; font-size:.82rem; padding:.35rem .4rem;}
+div.stButton > button:hover {border-color:var(--accent); color:var(--accent); background:var(--soft);}
+div.stDownloadButton > button {width:100%; border-radius:12px; border:none; background:var(--ink); color:#fff;
+  font-weight:600; padding:.7rem;}
+div.stDownloadButton > button:hover {background:#000; color:#fff;}
+button[data-baseweb="tab"] {font-size:.95rem; font-weight:600; padding:.55rem 1rem;}
+button[data-baseweb="tab"][aria-selected="true"] {color:var(--accent);}
 
-/* sticky result column */
-div[data-testid="stColumn"]:has(.sticky-anchor), div[data-testid="column"]:has(.sticky-anchor) {
-  position: sticky; top: 1rem; align-self: flex-start;
-}
-
-.footer {text-align: center; color: #94a3b8; font-size: .85rem; margin-top: 2.5rem;}
-.footer a {color: #6366f1; text-decoration: none; font-weight: 600;}
+.footer {text-align:center; color:#9AA3A0; font-size:.82rem; margin-top:3rem;}
+.footer a {color:var(--ink); text-decoration:none; font-weight:600;}
 </style>
 """,
     unsafe_allow_html=True,
@@ -135,7 +135,7 @@ df = load_data()
 HAS_DATA = not df.empty and "Exam_Score" in df.columns
 AVG_SCORE = float(df["Exam_Score"].mean()) if HAS_DATA else None
 
-# (min, max, default) -- ranges are taken from the dataset when available
+# (min, max, default) -- ranges come from the dataset when available
 NUMERIC = {
     "Hours_Studied": (1, 44, 20),
     "Attendance": (60, 100, 80),
@@ -163,7 +163,6 @@ CATEGORICAL = {
     "Distance_from_Home": (["Near", "Moderate", "Far"], "Near"),
     "Gender": (["Male", "Female"], "Male"),
 }
-# keep canonical order, but add any extra value found in the dataset
 OPTIONS = {}
 for _c, (_opts, _) in CATEGORICAL.items():
     opts = list(_opts)
@@ -173,9 +172,31 @@ for _c, (_opts, _) in CATEGORICAL.items():
 
 FEATURE_ORDER = list(NUMERIC) + list(CATEGORICAL)
 
+LABELS = {
+    "Hours_Studied": "Hours studied / week",
+    "Attendance": "Attendance (%)",
+    "Sleep_Hours": "Sleep (hours / night)",
+    "Previous_Scores": "Previous scores",
+    "Tutoring_Sessions": "Tutoring sessions / month",
+    "Physical_Activity": "Physical activity (hrs / week)",
+    "Parental_Involvement": "Parental involvement",
+    "Access_to_Resources": "Access to resources",
+    "Extracurricular_Activities": "Extracurriculars",
+    "Motivation_Level": "Motivation",
+    "Internet_Access": "Internet access",
+    "Family_Income": "Family income",
+    "Teacher_Quality": "Teacher quality",
+    "School_Type": "School type",
+    "Peer_Influence": "Peer influence",
+    "Learning_Disabilities": "Learning disability",
+    "Parental_Education_Level": "Parent education",
+    "Distance_from_Home": "Distance from home",
+    "Gender": "Gender",
+}
+
 
 def label(col: str) -> str:
-    return col.replace("_", " ")
+    return LABELS.get(col, col.replace("_", " "))
 
 
 # ----------------------------------------------------------------------------
@@ -187,7 +208,7 @@ for c, (_, d) in CATEGORICAL.items():
     st.session_state.setdefault(f"in_{c}", d)
 
 PRESETS = {
-    "🌟 High achiever": {
+    "Strong": {
         "Hours_Studied": 30, "Attendance": 96, "Sleep_Hours": 8, "Previous_Scores": 90,
         "Tutoring_Sessions": 3, "Physical_Activity": 4, "Parental_Involvement": "High",
         "Access_to_Resources": "High", "Extracurricular_Activities": "Yes",
@@ -195,7 +216,7 @@ PRESETS = {
         "Peer_Influence": "Positive", "Parental_Education_Level": "Postgraduate",
         "Distance_from_Home": "Near",
     },
-    "⚖️ Average student": {
+    "Typical": {
         "Hours_Studied": 20, "Attendance": 80, "Sleep_Hours": 7, "Previous_Scores": 75,
         "Tutoring_Sessions": 1, "Physical_Activity": 3, "Parental_Involvement": "Medium",
         "Access_to_Resources": "Medium", "Extracurricular_Activities": "Yes",
@@ -203,7 +224,7 @@ PRESETS = {
         "Peer_Influence": "Neutral", "Parental_Education_Level": "College",
         "Distance_from_Home": "Near",
     },
-    "⚠️ Needs support": {
+    "At risk": {
         "Hours_Studied": 8, "Attendance": 65, "Sleep_Hours": 5, "Previous_Scores": 55,
         "Tutoring_Sessions": 0, "Physical_Activity": 1, "Parental_Involvement": "Low",
         "Access_to_Resources": "Low", "Extracurricular_Activities": "No",
@@ -247,37 +268,23 @@ def clamp(x: float) -> float:
 
 
 def grade(score: float):
-    # (label, text colour, badge background, arc colour)
+    """(label, text colour, soft background)"""
     if score >= 90:
-        return "Excellent", "#047857", "#d1fae5", "#10b981"
+        return "Excellent", "#0F766E", "#DDF0EC"
     if score >= 80:
-        return "Very good", "#0f766e", "#ccfbf1", "#14b8a6"
+        return "Very good", "#2F7D5B", "#E1F1E8"
     if score >= 70:
-        return "Good", "#1d4ed8", "#dbeafe", "#6366f1"
+        return "Good", "#2F6A8F", "#E1EDF5"
     if score >= 60:
-        return "Fair", "#b45309", "#fef3c7", "#f59e0b"
-    return "Needs support", "#b91c1c", "#fee2e2", "#ef4444"
+        return "Fair", "#9A6B12", "#F7EBCF"
+    return "Needs support", "#A4452F", "#F6E0DA"
 
 
-def gauge_svg(score: float, color: str) -> str:
-    arc = np.pi * 80
-    filled = arc * score / 100
-    return (
-        '<svg viewBox="0 0 200 112" width="100%">'
-        '<path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="#e5e7eb" '
-        'stroke-width="17" stroke-linecap="round"/>'
-        '<path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="' + color + '" '
-        'stroke-width="17" stroke-linecap="round" '
-        f'stroke-dasharray="{filled:.1f} {arc:.1f}"/>'
-        "</svg>"
-    )
-
-
-def top_levers(values: dict, base: float, n: int = 4):
+def top_levers(values: dict, base: float, n: int = 5):
     ideas = []
 
     def num(col, delta, text):
-        lo, hi, _ = NUMERIC[col]
+        _, hi, _ = NUMERIC[col]
         new = min(values[col] + delta, hi)
         if new != values[col]:
             ideas.append((text, {col: new}))
@@ -288,13 +295,13 @@ def top_levers(values: dict, base: float, n: int = 4):
 
     num("Hours_Studied", 5, "Study 5 more hours per week")
     num("Attendance", 10, "Raise attendance by 10 points")
-    num("Tutoring_Sessions", 2, "Add 2 tutoring sessions")
+    num("Tutoring_Sessions", 2, "Add 2 tutoring sessions a month")
     num("Physical_Activity", 1, "One more hour of physical activity")
-    cat("Motivation_Level", "High", "High motivation level")
+    cat("Motivation_Level", "High", "High motivation")
     cat("Parental_Involvement", "High", "High parental involvement")
     cat("Access_to_Resources", "High", "High access to resources")
     cat("Teacher_Quality", "High", "High teacher quality")
-    cat("Internet_Access", "Yes", "Having internet access")
+    cat("Internet_Access", "Yes", "Reliable internet access")
     cat("Peer_Influence", "Positive", "Positive peer influence")
 
     if not ideas:
@@ -311,246 +318,327 @@ def sweep(values: dict, col: str) -> pd.DataFrame:
     xs = np.linspace(lo, hi, 30)
     rows = pd.DataFrame([{**values, col: float(x)} for x in xs])
     ys = np.clip(predict_batch(rows), 0, 100)
-    return pd.DataFrame({"Predicted score": ys}, index=pd.Index(np.round(xs, 1), name=label(col)))
+    return pd.DataFrame({"x": xs, "y": ys})
+
+
+# ---------- charts (Altair, custom styled) ----------
+def style(chart):
+    return (
+        chart.configure(background="transparent")
+        .configure_view(stroke=None)
+        .configure_axis(
+            domain=False, tickColor=LINE, gridColor="#EFEDE8", labelColor=MUTED,
+            titleColor=MUTED, labelFontSize=11, titleFontSize=11, titleFontWeight="normal",
+        )
+        .configure_axisX(grid=False)
+    )
+
+
+def whatif_chart(values: dict, col: str, score: float):
+    data = sweep(values, col)
+    cur = pd.DataFrame({"x": [values[col]], "y": [score]})
+    base = alt.Chart(data).encode(
+        x=alt.X("x:Q", title=label(col)),
+        y=alt.Y("y:Q", title=None, scale=alt.Scale(zero=False)),
+    )
+    area = base.mark_area(color=ACCENT, opacity=0.09, interpolate="monotone")
+    line = base.mark_line(color=ACCENT, strokeWidth=2.5, interpolate="monotone")
+    dot = (
+        alt.Chart(cur)
+        .mark_point(filled=True, size=130, color=INK, opacity=1)
+        .encode(x="x:Q", y="y:Q")
+    )
+    return style(alt.layer(area, line, dot).properties(height=200, width="container"))
+
+
+def distribution_chart(score: float):
+    vc = df["Exam_Score"].round().astype(int).value_counts().sort_index().reset_index()
+    vc.columns = ["score", "count"]
+    dom = [int(vc["score"].min()) - 1, int(vc["score"].max()) + 1]
+    base = alt.Chart(vc).encode(
+        x=alt.X("score:Q", title="Exam score", scale=alt.Scale(domain=dom)),
+        y=alt.Y("count:Q", axis=None),
+    )
+    area = base.mark_area(color=ACCENT, opacity=0.12, interpolate="monotone")
+    line = base.mark_line(color=ACCENT, strokeWidth=2, interpolate="monotone")
+    you = pd.DataFrame({"x": [min(max(score, dom[0]), dom[1])], "t": ["You"]})
+    avg = pd.DataFrame({"x": [AVG_SCORE], "t": ["Average"]})
+    r_you = alt.Chart(you).mark_rule(color=INK, strokeWidth=2).encode(x="x:Q")
+    r_avg = alt.Chart(avg).mark_rule(color=MUTED, strokeDash=[4, 4]).encode(x="x:Q")
+    t_you = alt.Chart(you).mark_text(align="left", dx=6, dy=12, color=INK, fontWeight="bold", fontSize=12).encode(x="x:Q", y=alt.value(0), text="t:N")
+    t_avg = alt.Chart(avg).mark_text(align="left", dx=6, dy=28, color=MUTED, fontSize=11).encode(x="x:Q", y=alt.value(0), text="t:N")
+    return style(alt.layer(area, line, r_avg, r_you, t_avg, t_you).properties(height=210, width="container"))
+
+
+def correlation_chart():
+    corr = df.select_dtypes("number").corr()["Exam_Score"].drop("Exam_Score")
+    cd = pd.DataFrame({"feature": [label(i) for i in corr.index], "r": corr.values.round(3)})
+    ch = (
+        alt.Chart(cd)
+        .mark_bar(cornerRadiusEnd=4, height=18)
+        .encode(
+            y=alt.Y("feature:N", sort="-x", title=None, axis=alt.Axis(labelLimit=220)),
+            x=alt.X("r:Q", title="Correlation with exam score"),
+            color=alt.condition(alt.datum.r > 0, alt.value(ACCENT), alt.value(TERRA)),
+            tooltip=["feature", "r"],
+        )
+        .properties(height=230, width="container")
+    )
+    return style(ch)
 
 
 # ----------------------------------------------------------------------------
-# Hero + stat strip
+# Sidebar — student profile
 # ----------------------------------------------------------------------------
-n_rows = f"{len(df):,}" if not df.empty else "6,607"
-avg_txt = f"{AVG_SCORE:.1f}" if AVG_SCORE is not None else "—"
-st.markdown(
-    """
-<div class="hero">
-  <h1>🎓 StudentScore AI</h1>
-  <p>Estimate a student's exam score from study habits, lifestyle and background — instantly, as you type.</p>
-  <div class="chips">
-    <span class="chip">Ridge Regression</span>
-    <span class="chip">scikit-learn Pipeline</span>
-    <span class="chip">Live predictions</span>
-    <span class="chip">What-if analysis</span>
-  </div>
-</div>
-""",
-    unsafe_allow_html=True,
-)
-st.markdown(
-    '<div class="stats">'
-    '<div class="stat"><div class="k">Algorithm</div><div class="v">Ridge</div></div>'
-    f'<div class="stat"><div class="k">Training records</div><div class="v">{n_rows}</div></div>'
-    f'<div class="stat"><div class="k">Input features</div><div class="v">{len(FEATURE_ORDER)}</div></div>'
-    f'<div class="stat"><div class="k">Avg. exam score</div><div class="v">{avg_txt}</div></div>'
-    "</div>",
-    unsafe_allow_html=True,
-)
+def slider(col):
+    lo, hi, _ = NUMERIC[col]
+    st.slider(label(col), lo, hi, key=f"in_{col}")
 
-tab_predict, tab_insights, tab_about = st.tabs(["🔮 Predict", "📈 Insights", "ℹ️ About"])
 
-# ----------------------------------------------------------------------------
-# Predict tab
-# ----------------------------------------------------------------------------
-with tab_predict:
+def select(col):
+    st.selectbox(label(col), OPTIONS[col], key=f"in_{col}")
+
+
+with st.sidebar:
     st.markdown(
-        '<div class="muted" style="margin:.4rem 0 .5rem">⚡ Quick start — load a sample profile, then tweak any input.</div>',
+        '<div class="side-title">Student profile</div>'
+        '<div class="side-sub">Pick a starting point, then fine-tune.</div>',
         unsafe_allow_html=True,
     )
-    pcols = st.columns(len(PRESETS) + 1)
+    bcols = st.columns(4)
     for i, pname in enumerate(PRESETS):
-        pcols[i].button(pname, on_click=apply_preset, args=(pname,), key=f"preset_{i}")
-    pcols[-1].button("↺ Reset", on_click=reset_all, key="reset_btn")
-
+        bcols[i].button(pname, on_click=apply_preset, args=(pname,), key=f"preset_{i}")
+    bcols[3].button("Reset", on_click=reset_all, key="reset_btn")
     st.write("")
-    left, right = st.columns([1.6, 1], gap="large")
 
-    def slider(col):
-        lo, hi, _ = NUMERIC[col]
-        st.slider(label(col), lo, hi, key=f"in_{col}")
+    with st.expander("Academic", expanded=True):
+        slider("Hours_Studied")
+        slider("Attendance")
+        slider("Previous_Scores")
+        slider("Tutoring_Sessions")
+        a, b = st.columns(2)
+        with a:
+            select("Motivation_Level")
+        with b:
+            select("Learning_Disabilities")
 
-    def select(col):
-        st.selectbox(label(col), OPTIONS[col], key=f"in_{col}")
+    with st.expander("Lifestyle", expanded=True):
+        slider("Sleep_Hours")
+        slider("Physical_Activity")
+        a, b = st.columns(2)
+        with a:
+            select("Extracurricular_Activities")
+        with b:
+            select("Peer_Influence")
 
-    # ---- inputs (all visible, no hidden tabs)
-    with left:
-        with st.container(border=True):
-            st.markdown('<div class="sec-title">📚 Academic</div><div class="sec-sub">Study habits and past performance</div>', unsafe_allow_html=True)
-            a, b = st.columns(2, gap="large")
-            with a:
-                slider("Hours_Studied")
-                slider("Previous_Scores")
-                select("Motivation_Level")
-            with b:
-                slider("Attendance")
-                slider("Tutoring_Sessions")
-                select("Learning_Disabilities")
+    with st.expander("Background", expanded=False):
+        a, b = st.columns(2)
+        with a:
+            select("Parental_Involvement")
+            select("Family_Income")
+            select("Teacher_Quality")
+            select("Internet_Access")
+            select("Gender")
+        with b:
+            select("Parental_Education_Level")
+            select("Access_to_Resources")
+            select("School_Type")
+            select("Distance_from_Home")
 
-        with st.container(border=True):
-            st.markdown('<div class="sec-title">🌿 Lifestyle</div><div class="sec-sub">Rest, activity and social environment</div>', unsafe_allow_html=True)
-            a, b = st.columns(2, gap="large")
-            with a:
-                slider("Sleep_Hours")
-                select("Extracurricular_Activities")
-            with b:
-                slider("Physical_Activity")
-                select("Peer_Influence")
+# ----------------------------------------------------------------------------
+# Header
+# ----------------------------------------------------------------------------
+st.markdown(
+    '<div class="topbar">'
+    '<div class="brand"><div class="logo">S</div>'
+    '<div><div class="brand-name">StudentScore AI</div>'
+    '<div class="brand-sub">Exam score prediction · Ridge Regression</div></div></div>'
+    f'<a class="gh" href="{GITHUB_URL}" target="_blank">GitHub ↗</a>'
+    "</div>"
+    '<h1 class="headline">Understand what moves<br>a student’s <em>exam score.</em></h1>'
+    '<div class="lead">A regression model trained on 6,607 student records. '
+    "Adjust the profile in the sidebar and the prediction updates instantly.</div>",
+    unsafe_allow_html=True,
+)
 
-        with st.container(border=True):
-            st.markdown('<div class="sec-title">🏠 Background</div><div class="sec-sub">Family, school and access</div>', unsafe_allow_html=True)
-            a, b, c = st.columns(3, gap="medium")
-            with a:
-                select("Parental_Involvement")
-                select("Family_Income")
-                select("Gender")
-            with b:
-                select("Parental_Education_Level")
-                select("Access_to_Resources")
-                select("Distance_from_Home")
-            with c:
-                select("Teacher_Quality")
-                select("School_Type")
-                select("Internet_Access")
+# ----------------------------------------------------------------------------
+# Live prediction
+# ----------------------------------------------------------------------------
+values = current_values()
+try:
+    raw = float(predict_batch(pd.DataFrame([values]))[0])
+    score = clamp(raw)
+    ok = True
+except Exception as exc:  # noqa: BLE001
+    ok, err = False, exc
 
-    # ---- live result
-    values = current_values()
-    try:
-        raw = float(predict_batch(pd.DataFrame([values]))[0])
-        score = clamp(raw)
-        ok = True
-    except Exception as exc:  # noqa: BLE001
-        ok = False
-        err = exc
+if not ok:
+    st.error("Prediction failed. Check that the saved model matches the notebook features.")
+    st.exception(err)
+    st.stop()
 
-    with right:
-        st.markdown('<div class="sticky-anchor"></div>', unsafe_allow_html=True)
-        if not ok:
-            st.error("Prediction failed. Check that the saved model matches the notebook features.")
-            st.exception(err)
-        else:
-            gname, fg, bg, arc_color = grade(score)
-            delta_html = ""
-            if AVG_SCORE is not None:
-                diff = score - AVG_SCORE
-                sign = "+" if diff >= 0 else ""
-                clr = "#059669" if diff >= 0 else "#dc2626"
-                delta_html = (
-                    f'<div class="delta"><b style="color:{clr}">{sign}{diff:.1f} pts</b> '
-                    f"vs dataset average ({AVG_SCORE:.1f})</div>"
-                )
+gname, fg, bg = grade(score)
+
+with st.container(border=True):
+    st.markdown('<div class="card-marker"></div>', unsafe_allow_html=True)
+    c1, c2 = st.columns([1, 1.45], gap="large")
+    with c1:
+        meta = []
+        if AVG_SCORE is not None:
+            diff = score - AVG_SCORE
+            sign = "+" if diff >= 0 else "−"
+            meta.append(f"<b>{sign}{abs(diff):.1f} pts</b> vs. dataset average ({AVG_SCORE:.1f})")
+            pct = float((df["Exam_Score"] < score).mean() * 100)
+            meta.append(f"Higher than <b>{pct:.0f}%</b> of students in the dataset")
+        st.markdown(
+            '<div class="eyebrow">Predicted exam score</div>'
+            f'<div class="bigscore">{score:.1f}<span>/ 100</span></div>'
+            f'<span class="pill" style="color:{fg};background:{bg}">{gname}</span>'
+            f'<div class="meta">{"<br>".join(meta)}</div>'
+            f'<div class="track"><div style="width:{score:.1f}%;background:{fg}"></div></div>',
+            unsafe_allow_html=True,
+        )
+        if raw > 100:
+            st.caption("Raw model output exceeded 100 and was capped for display.")
+    with c2:
+        if HAS_DATA:
             st.markdown(
-                '<div class="card center">'
-                '<div class="score-label">Predicted exam score</div>'
-                '<div class="gauge-box">'
-                + gauge_svg(score, arc_color)
-                + f'<div class="gauge-num">{score:.1f}<span> / 100</span></div></div>'
-                f'<div class="badge" style="color:{fg};background:{bg}">{gname}</div>'
-                + delta_html
-                + "</div>",
+                '<div class="card-title">Where this student lands</div>'
+                '<div class="card-sub">Distribution of exam scores across all students.</div>',
                 unsafe_allow_html=True,
             )
-            if raw > 100:
-                st.caption("The raw model output exceeded 100 and was capped for display.")
+            st.altair_chart(distribution_chart(score), theme=None)
 
+st.write("")
+tab_drivers, tab_whatif, tab_data, tab_about = st.tabs(["Key drivers", "What-if", "Dataset", "About"])
+
+# ---------- Key drivers
+with tab_drivers:
+    left, right = st.columns([1.6, 1], gap="large")
+    with left:
+        with st.container(border=True):
+            st.markdown(
+                '<div class="card-marker"></div>'
+                '<div class="card-title">What would move this score most</div>'
+                '<div class="card-sub">Estimated change in the prediction if one factor improved, everything else equal.</div>',
+                unsafe_allow_html=True,
+            )
             levers = top_levers(values, raw)
             if levers:
-                items = "".join(
-                    f'<div class="lever"><span>{t}</span><span class="gain">+{g:.1f}</span></div>'
+                peak = max(g for _, g in levers)
+                rows = "".join(
+                    f'<div class="lv"><div>{t}</div>'
+                    f'<div class="lv-bar"><div style="width:{g / peak * 100:.0f}%"></div></div>'
+                    f'<div class="lv-g">+{g:.1f}</div></div>'
                     for t, g in levers
                 )
-                st.markdown(
-                    '<div class="card" style="margin-top:1rem">'
-                    '<div class="section-title">🎯 Biggest model-estimated levers</div>'
-                    + items
-                    + '<div class="muted" style="margin-top:.7rem">Statistical associations learned by the model — not guaranteed causal effects.</div>'
-                    "</div>",
-                    unsafe_allow_html=True,
-                )
-
-            st.write("")
+                st.markdown(rows, unsafe_allow_html=True)
+            else:
+                st.info("This profile is already at the top of the tested ranges.")
+            st.caption("Statistical associations learned by the model — not guaranteed causal effects.")
+    with right:
+        with st.container(border=True):
+            st.markdown(
+                '<div class="card-marker"></div>'
+                '<div class="card-title">Export</div>'
+                '<div class="card-sub">Save this profile and its prediction as a CSV.</div>',
+                unsafe_allow_html=True,
+            )
             report = pd.DataFrame([{**values, "Predicted_Exam_Score": round(score, 2)}])
             st.download_button(
-                "⬇️ Download this prediction (CSV)",
+                "Download prediction (CSV)",
                 report.to_csv(index=False).encode("utf-8"),
                 file_name="studentscore_prediction.csv",
                 mime="text/csv",
             )
 
-# ----------------------------------------------------------------------------
-# Insights tab
-# ----------------------------------------------------------------------------
-with tab_insights:
-    st.markdown("#### What-if explorer")
-    st.caption("See how the predicted score changes as one input varies while everything else stays as set in the Predict tab.")
+# ---------- What-if
+with tab_whatif:
+    st.caption("Each curve re-runs the model while varying one input. The dark dot is the current profile.")
     try:
-        vals = current_values()
-        c1, c2 = st.columns(2)
-        with c1:
-            st.markdown("**Hours studied → score**")
-            st.line_chart(sweep(vals, "Hours_Studied"))
-        with c2:
-            st.markdown("**Attendance → score**")
-            st.line_chart(sweep(vals, "Attendance"))
-        c3, c4 = st.columns(2)
-        with c3:
-            st.markdown("**Previous scores → score**")
-            st.line_chart(sweep(vals, "Previous_Scores"))
-        with c4:
-            st.markdown("**Sleep hours → score**")
-            st.line_chart(sweep(vals, "Sleep_Hours"))
+        pairs = [("Hours_Studied", "Attendance"), ("Previous_Scores", "Sleep_Hours")]
+        for a_col, b_col in pairs:
+            ca, cb = st.columns(2, gap="large")
+            for holder, col in ((ca, a_col), (cb, b_col)):
+                with holder:
+                    with st.container(border=True):
+                        st.markdown(
+                            f'<div class="card-marker"></div><div class="card-title">{label(col)}</div>'
+                            '<div class="card-sub">Predicted exam score</div>',
+                            unsafe_allow_html=True,
+                        )
+                        st.altair_chart(whatif_chart(values, col, score), theme=None)
     except Exception as exc:  # noqa: BLE001
         st.warning("What-if charts are unavailable for this model.")
         st.exception(exc)
 
-    if HAS_DATA:
-        st.divider()
-        st.markdown("#### Dataset overview")
-        m1, m2, m3, m4 = st.columns(4)
-        m1.metric("Students", f"{len(df):,}")
-        m2.metric("Avg. score", f"{df['Exam_Score'].mean():.1f}")
-        m3.metric("Min score", f"{df['Exam_Score'].min():.0f}")
-        m4.metric("Max score", f"{df['Exam_Score'].max():.0f}")
-
-        d1, d2 = st.columns(2)
+# ---------- Dataset
+with tab_data:
+    if not HAS_DATA:
+        st.info("Dataset file not found at data/StudentPerformanceFactors.csv.")
+    else:
+        stats = [
+            ("Students", f"{len(df):,}"),
+            ("Average score", f"{df['Exam_Score'].mean():.1f}"),
+            ("Lowest", f"{df['Exam_Score'].min():.0f}"),
+            ("Highest", f"{df['Exam_Score'].max():.0f}"),
+        ]
+        cols = st.columns(4)
+        for col_, (k, v) in zip(cols, stats):
+            col_.markdown(f'<div class="stat"><div class="eyebrow">{k}</div><div class="v">{v}</div></div>', unsafe_allow_html=True)
+        st.write("")
+        d1, d2 = st.columns(2, gap="large")
         with d1:
-            st.markdown("**Exam score distribution**")
-            counts, edges = np.histogram(df["Exam_Score"], bins=15)
-            hist = pd.DataFrame(
-                {"Students": counts},
-                index=[f"{int(edges[i])}-{int(edges[i + 1])}" for i in range(len(counts))],
-            )
-            st.bar_chart(hist)
+            with st.container(border=True):
+                st.markdown(
+                    '<div class="card-marker"></div><div class="card-title">Score distribution</div>'
+                    '<div class="card-sub">Number of students per exam score.</div>',
+                    unsafe_allow_html=True,
+                )
+                st.altair_chart(distribution_chart(score), theme=None)
         with d2:
-            st.markdown("**Correlation with exam score**")
-            corr = (
-                df.select_dtypes(include="number").corr()["Exam_Score"].drop("Exam_Score").sort_values()
-            )
-            st.bar_chart(corr.rename("Correlation"))
+            with st.container(border=True):
+                st.markdown(
+                    '<div class="card-marker"></div><div class="card-title">Numeric factors vs. score</div>'
+                    '<div class="card-sub">Pearson correlation with exam score.</div>',
+                    unsafe_allow_html=True,
+                )
+                st.altair_chart(correlation_chart(), theme=None)
 
-# ----------------------------------------------------------------------------
-# About tab
-# ----------------------------------------------------------------------------
+# ---------- About
 with tab_about:
     a, b = st.columns(2, gap="large")
     with a:
-        st.markdown("#### How it works")
-        st.markdown(
-            "1. **Input** — academic, lifestyle and background features.\n"
-            "2. **Preprocessing** — the saved scikit-learn pipeline encodes and scales the data.\n"
-            "3. **Prediction** — a Ridge Regression model estimates the exam score.\n"
-            "4. **Insights** — what-if sweeps re-run the model to show how each input moves the score."
-        )
-        st.markdown("#### Tech stack")
-        st.markdown("`Python` · `scikit-learn` · `Ridge Regression` · `Pandas` · `Joblib` · `Streamlit`")
+        with st.container(border=True):
+            st.markdown(
+                '<div class="card-marker"></div><div class="card-title">How it works</div>'
+                '<div class="card-sub">From inputs to a prediction in four steps.</div>',
+                unsafe_allow_html=True,
+            )
+            st.markdown(
+                "1. **Input** — academic, lifestyle and background features.\n"
+                "2. **Preprocessing** — the saved scikit-learn pipeline encodes and scales the data.\n"
+                "3. **Prediction** — a Ridge Regression model estimates the exam score.\n"
+                "4. **Insights** — what-if sweeps re-run the model to show how each input moves the score."
+            )
+            st.markdown("`Python` · `scikit-learn` · `Pandas` · `Joblib` · `Altair` · `Streamlit`")
     with b:
-        st.markdown("#### Responsible use")
-        st.markdown(
-            "- Predictions are **estimates**, not guaranteed results.\n"
-            "- Accuracy depends on the training data's quality and representativeness.\n"
-            "- Statistical relationships are **not** proof of causation.\n"
-            "- Not intended as the sole basis for high-impact academic decisions."
-        )
-        st.link_button("View source on GitHub", GITHUB_URL)
+        with st.container(border=True):
+            st.markdown(
+                '<div class="card-marker"></div><div class="card-title">Responsible use</div>'
+                '<div class="card-sub">Please read before relying on a prediction.</div>',
+                unsafe_allow_html=True,
+            )
+            st.markdown(
+                "- Predictions are **estimates**, not guaranteed results.\n"
+                "- Accuracy depends on the training data's quality and representativeness.\n"
+                "- Statistical relationships are **not** proof of causation.\n"
+                "- Not intended as the sole basis for high-impact academic decisions."
+            )
+            st.link_button("View source on GitHub", GITHUB_URL)
 
 st.markdown(
-    f'<div class="footer">Built by <b>Abdelrahman Akl</b> · '
-    f'<a href="{GITHUB_URL}" target="_blank">GitHub</a> · StudentScore AI · Ridge Regression</div>',
+    f'<div class="footer">Designed &amp; built by <a href="{GITHUB_URL}" target="_blank">Abdelrahman Akl</a>'
+    " · StudentScore AI</div>",
     unsafe_allow_html=True,
 )
