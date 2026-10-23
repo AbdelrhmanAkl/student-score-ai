@@ -33,15 +33,16 @@ st.markdown(
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Instrument+Serif&display=swap');
 
-:root {--bg:#F6F5F2; --ink:#14201F; --muted:#6B7673; --line:#E6E3DC; --accent:#0F766E; --soft:#E6F2EF;}
-html, body, .stApp {font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;}
+:root {--bg:#F6F5F2; --ink:#14201F; --muted:#6B7673; --line:#E3E0D8; --accent:#0F766E; --soft:#E6F2EF;}
+html, body, .stApp, .stApp p, .stApp label, .stApp button, .stApp input, .stApp li {
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;}
 .stApp {background: var(--bg);}
 header[data-testid="stHeader"] {background: transparent;}
-#MainMenu, footer {visibility: hidden;}
+[data-testid="stAppDeployButton"], #MainMenu, footer {display: none !important;}
 .block-container {max-width: 1180px; padding-top: 2rem; padding-bottom: 4rem;}
 
 /* ---------- top bar & headline ---------- */
-.topbar {display:flex; justify-content:space-between; align-items:center; margin-bottom: 2.2rem;}
+.topbar {display:flex; justify-content:space-between; align-items:center; margin-bottom: 2rem;}
 .brand {display:flex; align-items:center; gap:.8rem;}
 .logo {width:38px; height:38px; border-radius:11px; background:var(--ink); color:#fff; display:flex;
   align-items:center; justify-content:center; font-weight:700; font-size:1.05rem;}
@@ -50,27 +51,29 @@ header[data-testid="stHeader"] {background: transparent;}
 .gh {color:var(--ink) !important; text-decoration:none !important; font-weight:600; font-size:.85rem;
   border:1px solid var(--line); padding:.45rem .95rem; border-radius:999px; background:#fff;}
 .gh:hover {border-color:var(--accent); color:var(--accent) !important;}
-.headline {font-family:'Instrument Serif', Georgia, serif; font-size:3.4rem; line-height:1.05;
-  letter-spacing:-1px; color:var(--ink); margin:0;}
+.headline {font-family:'Instrument Serif', Georgia, 'Times New Roman', serif; font-weight:400;
+  font-size:3.6rem; line-height:1.04; letter-spacing:-1.2px; color:var(--ink); margin:0;}
 .headline em {color:var(--accent); font-style:italic;}
-.lead {color:var(--muted); font-size:1.05rem; margin:.9rem 0 1.8rem; max-width:620px; line-height:1.55;}
+.lead {color:var(--muted); font-size:1.02rem; margin:1rem 0 1.8rem; max-width:600px; line-height:1.6;}
 
-/* ---------- cards ---------- */
-div[data-testid="stVerticalBlockBorderWrapper"]:has(.card-marker) {
-  background:#fff; border:1px solid var(--line); border-radius:20px; padding:.7rem .9rem;
-  box-shadow: 0 1px 2px rgba(20,32,31,.04), 0 12px 30px -24px rgba(20,32,31,.35);
+/* ---------- cards (bordered containers that hold a .card-marker) ---------- */
+div[data-testid="stVerticalBlock"]:has(> div[data-testid="stElementContainer"] .card-marker) {
+  background:#fff; border:1px solid var(--line) !important; border-radius:18px !important;
+  padding:1.3rem 1.5rem !important;
+  box-shadow: 0 1px 2px rgba(20,32,31,.04), 0 14px 32px -26px rgba(20,32,31,.45);
 }
+div[data-testid="stElementContainer"]:has(.card-marker) {display:none;}
 .eyebrow {font-size:.72rem; text-transform:uppercase; letter-spacing:1.4px; color:var(--muted); font-weight:600;}
-.card-title {font-weight:650; font-size:1.05rem; color:var(--ink); margin:.1rem 0 .15rem;}
-.card-sub {color:var(--muted); font-size:.86rem; margin-bottom:.9rem; line-height:1.45;}
+.card-title {font-weight:650; font-size:1.05rem; color:var(--ink); margin:0 0 .15rem;}
+.card-sub {color:var(--muted); font-size:.86rem; line-height:1.45;}
 
-.bigscore {font-family:'Instrument Serif', Georgia, serif; font-size:6.2rem; line-height:1;
-  letter-spacing:-3px; color:var(--ink); margin:.5rem 0 .2rem;}
-.bigscore span {font-family:'Inter', sans-serif; font-size:1.15rem; color:#9AA3A0; letter-spacing:0; margin-left:.35rem; font-weight:500;}
-.pill {display:inline-block; padding:.28rem .85rem; border-radius:999px; font-weight:600; font-size:.82rem;}
-.meta {color:var(--muted); font-size:.92rem; margin-top:.9rem; line-height:1.6;}
+.bigscore {font-family:'Instrument Serif', Georgia, serif; font-size:6rem; line-height:1;
+  letter-spacing:-3px; color:var(--ink); margin:.55rem 0 .5rem;}
+.bigscore span {font-family:'Inter', sans-serif; font-size:1.1rem; color:#9AA3A0; letter-spacing:0; margin-left:.4rem; font-weight:500;}
+.pill {display:inline-block; padding:.3rem .9rem; border-radius:999px; font-weight:600; font-size:.82rem;}
+.meta {color:var(--muted); font-size:.92rem; margin-top:1rem; line-height:1.7;}
 .meta b {color:var(--ink); font-weight:600;}
-.track {height:6px; border-radius:999px; background:#EEECE6; margin-top:1.1rem; overflow:hidden;}
+.track {height:6px; border-radius:999px; background:#EEECE6; margin-top:1.2rem; overflow:hidden;}
 .track > div {height:100%; border-radius:999px;}
 
 .lv {display:grid; grid-template-columns: 1.5fr 1fr auto; gap:1rem; align-items:center;
@@ -81,27 +84,34 @@ div[data-testid="stVerticalBlockBorderWrapper"]:has(.card-marker) {
 .lv-g {font-weight:650; color:var(--accent); min-width:3rem; text-align:right;}
 
 .stat {background:#fff; border:1px solid var(--line); border-radius:16px; padding:1rem 1.2rem;}
-.stat .v {font-family:'Instrument Serif', Georgia, serif; font-size:2.2rem; color:var(--ink); line-height:1.1; margin-top:.2rem;}
+.stat .v {font-family:'Instrument Serif', Georgia, serif; font-size:2.3rem; color:var(--ink); line-height:1.1; margin-top:.2rem;}
 
 /* ---------- sidebar ---------- */
 section[data-testid="stSidebar"] {background:#fff; border-right:1px solid var(--line);}
-section[data-testid="stSidebar"][aria-expanded="true"] {min-width:370px; width:370px;}
-.side-title {font-weight:700; font-size:1.15rem; color:var(--ink); margin:0;}
-.side-sub {color:var(--muted); font-size:.84rem; margin:.15rem 0 1rem;}
-div[data-testid="stExpander"] details {border:1px solid var(--line) !important; border-radius:14px !important; background:#fff;}
-div[data-testid="stExpander"] summary {font-weight:600;}
+section[data-testid="stSidebar"][data-collapsed="false"] {width:400px !important; min-width:400px !important;}
+.side-title {font-weight:700; font-size:1.2rem; color:var(--ink); margin:0;}
+.side-sub {color:var(--muted); font-size:.84rem; margin:.15rem 0 .6rem;}
+div[data-testid="stExpander"] details {border:1px solid var(--line) !important; border-radius:14px !important; background:#fff !important;}
+div[data-testid="stExpander"] summary {font-weight:600; background:transparent !important;}
 
 /* ---------- widgets ---------- */
-label p, div[data-testid="stWidgetLabel"] p {font-size:.85rem !important; font-weight:550 !important; color:#2B3836;}
-div[data-baseweb="select"] > div {border-radius:10px; min-height:42px;}
-div.stButton > button {width:100%; border-radius:10px; border:1px solid var(--line); background:#fff;
-  color:var(--ink); font-weight:550; font-size:.82rem; padding:.35rem .4rem;}
-div.stButton > button:hover {border-color:var(--accent); color:var(--accent); background:var(--soft);}
-div.stDownloadButton > button {width:100%; border-radius:12px; border:none; background:var(--ink); color:#fff;
-  font-weight:600; padding:.7rem;}
-div.stDownloadButton > button:hover {background:#000; color:#fff;}
-button[data-baseweb="tab"] {font-size:.95rem; font-weight:600; padding:.55rem 1rem;}
-button[data-baseweb="tab"][aria-selected="true"] {color:var(--accent);}
+div[data-testid="stWidgetLabel"] p {font-size:.84rem !important; font-weight:550 !important; color:#2B3836;}
+/* slider: Streamlit's default red -> teal (hue shift of rgb(255,75,75) to ~#0F766E) */
+div[data-testid="stSlider"] [role="group"] {filter: hue-rotate(175deg) saturate(.65) brightness(.85);}
+/* select boxes */
+div[data-testid="stSelectbox"] [role="group"] {background:#F6F5F2 !important; border:1px solid var(--line) !important; border-radius:10px !important;}
+div[data-testid="stSelectbox"] [role="group"]:focus-within {border-color:var(--accent) !important;}
+/* buttons */
+div[data-testid="stButton"], div[data-testid="stDownloadButton"] {width:100% !important;}
+div[data-testid="stButton"] button {width:100%; border-radius:10px; border:1px solid var(--line); background:#fff;
+  color:var(--ink); font-weight:550; font-size:.82rem; padding:.35rem .3rem;}
+div[data-testid="stButton"] button:hover {border-color:var(--accent); color:var(--accent); background:var(--soft);}
+div[data-testid="stDownloadButton"] button {width:100%; border-radius:12px; border:none; background:var(--ink); color:#fff; font-weight:600; padding:.7rem;}
+div[data-testid="stDownloadButton"] button:hover {background:#000; color:#fff;}
+/* tabs */
+div[data-testid="stTab"] p {font-weight:600; font-size:.95rem;}
+div[data-testid="stTab"][aria-selected="true"] p {color:var(--accent) !important;}
+.react-aria-SelectionIndicator {background:var(--accent) !important;}
 
 .footer {text-align:center; color:#9AA3A0; font-size:.82rem; margin-top:3rem;}
 .footer a {color:var(--ink); text-decoration:none; font-weight:600;}
@@ -109,6 +119,19 @@ button[data-baseweb="tab"][aria-selected="true"] {color:var(--accent);}
 """,
     unsafe_allow_html=True,
 )
+
+
+def card_marker():
+    """Standalone marker: the container that holds it is styled as a white card."""
+    st.markdown('<div class="card-marker"></div>', unsafe_allow_html=True)
+
+
+def card_head(title: str, sub: str = ""):
+    st.markdown(
+        f'<div class="card-title">{title}</div>' + (f'<div class="card-sub">{sub}</div>' if sub else ""),
+        unsafe_allow_html=True,
+    )
+
 
 # ----------------------------------------------------------------------------
 # Model & data
@@ -336,23 +359,28 @@ def style(chart):
 
 def whatif_chart(values: dict, col: str, score: float):
     data = sweep(values, col)
+    lo_y, hi_y = float(data["y"].min()), float(data["y"].max())
+    pad = max((hi_y - lo_y) * 0.3, 1.5)
+    ylo, yhi = max(lo_y - pad, 0.0), min(hi_y + pad, 100.0)
+    data["y0"] = ylo
     cur = pd.DataFrame({"x": [values[col]], "y": [score]})
-    base = alt.Chart(data).encode(
-        x=alt.X("x:Q", title=label(col)),
-        y=alt.Y("y:Q", title=None, scale=alt.Scale(zero=False)),
-    )
-    area = base.mark_area(color=ACCENT, opacity=0.09, interpolate="monotone")
-    line = base.mark_line(color=ACCENT, strokeWidth=2.5, interpolate="monotone")
+    xs = alt.X("x:Q", title=label(col), scale=alt.Scale(nice=False))
+    ys = alt.Y("y:Q", title=None, scale=alt.Scale(domain=[ylo, yhi], nice=False))
+    base = alt.Chart(data).encode(x=xs, y=ys)
+    area = base.mark_area(color=ACCENT, opacity=0.09, interpolate="monotone").encode(y2="y0:Q")
+    line = base.mark_line(color=ACCENT, strokeWidth=2.5, interpolate="monotone", clip=True)
     dot = (
         alt.Chart(cur)
         .mark_point(filled=True, size=130, color=INK, opacity=1)
-        .encode(x="x:Q", y="y:Q")
+        .encode(x="x:Q", y=alt.Y("y:Q", scale=alt.Scale(domain=[ylo, yhi], nice=False)))
     )
     return style(alt.layer(area, line, dot).properties(height=200, width="container"))
 
 
 def distribution_chart(score: float):
-    vc = df["Exam_Score"].round().astype(int).value_counts().sort_index().reset_index()
+    vc = df["Exam_Score"].round().astype(int).value_counts().sort_index()
+    vc = vc.reindex(range(int(vc.index.min()), int(vc.index.max()) + 1), fill_value=0)
+    vc = vc.rolling(3, center=True, min_periods=1).mean().reset_index()
     vc.columns = ["score", "count"]
     dom = [int(vc["score"].min()) - 1, int(vc["score"].max()) + 1]
     base = alt.Chart(vc).encode(
@@ -361,13 +389,24 @@ def distribution_chart(score: float):
     )
     area = base.mark_area(color=ACCENT, opacity=0.12, interpolate="monotone")
     line = base.mark_line(color=ACCENT, strokeWidth=2, interpolate="monotone")
-    you = pd.DataFrame({"x": [min(max(score, dom[0]), dom[1])], "t": ["You"]})
-    avg = pd.DataFrame({"x": [AVG_SCORE], "t": ["Average"]})
+    xs = min(max(score, dom[0]), dom[1])
+    you = pd.DataFrame({"x": [xs], "t": [f"You · {score:.1f}"]})
+    avg = pd.DataFrame({"x": [AVG_SCORE], "t": [f"Average · {AVG_SCORE:.1f}"]})
+    you_right = xs >= AVG_SCORE
     r_you = alt.Chart(you).mark_rule(color=INK, strokeWidth=2).encode(x="x:Q")
     r_avg = alt.Chart(avg).mark_rule(color=MUTED, strokeDash=[4, 4]).encode(x="x:Q")
-    t_you = alt.Chart(you).mark_text(align="left", dx=6, dy=12, color=INK, fontWeight="bold", fontSize=12).encode(x="x:Q", y=alt.value(0), text="t:N")
-    t_avg = alt.Chart(avg).mark_text(align="left", dx=6, dy=28, color=MUTED, fontSize=11).encode(x="x:Q", y=alt.value(0), text="t:N")
-    return style(alt.layer(area, line, r_avg, r_you, t_avg, t_you).properties(height=210, width="container"))
+    t_you = alt.Chart(you).mark_text(
+        align="left" if you_right else "right", dx=6 if you_right else -6, dy=-10,
+        color=INK, fontWeight="bold", fontSize=12,
+    ).encode(x="x:Q", y=alt.value(0), text="t:N")
+    t_avg = alt.Chart(avg).mark_text(
+        align="right" if you_right else "left", dx=-6 if you_right else 6, dy=-10,
+        color=MUTED, fontSize=12,
+    ).encode(x="x:Q", y=alt.value(0), text="t:N")
+    ch = alt.layer(area, line, r_avg, r_you, t_avg, t_you).properties(
+        height=210, width="container", padding={"top": 28, "left": 4, "right": 10, "bottom": 4}
+    )
+    return style(ch)
 
 
 def correlation_chart():
@@ -455,7 +494,7 @@ st.markdown(
     '<div class="brand-sub">Exam score prediction · Ridge Regression</div></div></div>'
     f'<a class="gh" href="{GITHUB_URL}" target="_blank">GitHub ↗</a>'
     "</div>"
-    '<h1 class="headline">Understand what moves<br>a student’s <em>exam score.</em></h1>'
+    '<div class="headline">Understand what moves<br>a student’s <em>exam score.</em></div>'
     '<div class="lead">A regression model trained on 6,607 student records. '
     "Adjust the profile in the sidebar and the prediction updates instantly.</div>",
     unsafe_allow_html=True,
@@ -480,7 +519,7 @@ if not ok:
 gname, fg, bg = grade(score)
 
 with st.container(border=True):
-    st.markdown('<div class="card-marker"></div>', unsafe_allow_html=True)
+    card_marker()
     c1, c2 = st.columns([1, 1.45], gap="large")
     with c1:
         meta = []
@@ -502,11 +541,7 @@ with st.container(border=True):
             st.caption("Raw model output exceeded 100 and was capped for display.")
     with c2:
         if HAS_DATA:
-            st.markdown(
-                '<div class="card-title">Where this student lands</div>'
-                '<div class="card-sub">Distribution of exam scores across all students.</div>',
-                unsafe_allow_html=True,
-            )
+            card_head("Where this student lands", "Distribution of exam scores across all students.")
             st.altair_chart(distribution_chart(score), theme=None)
 
 st.write("")
@@ -517,12 +552,9 @@ with tab_drivers:
     left, right = st.columns([1.6, 1], gap="large")
     with left:
         with st.container(border=True):
-            st.markdown(
-                '<div class="card-marker"></div>'
-                '<div class="card-title">What would move this score most</div>'
-                '<div class="card-sub">Estimated change in the prediction if one factor improved, everything else equal.</div>',
-                unsafe_allow_html=True,
-            )
+            card_marker()
+            card_head("What would move this score most", "Estimated change in the prediction if one factor improved, everything else equal.")
+            st.write("")
             levers = top_levers(values, raw)
             if levers:
                 peak = max(g for _, g in levers)
@@ -538,12 +570,9 @@ with tab_drivers:
             st.caption("Statistical associations learned by the model — not guaranteed causal effects.")
     with right:
         with st.container(border=True):
-            st.markdown(
-                '<div class="card-marker"></div>'
-                '<div class="card-title">Export</div>'
-                '<div class="card-sub">Save this profile and its prediction as a CSV.</div>',
-                unsafe_allow_html=True,
-            )
+            card_marker()
+            card_head("Export", "Save this profile and its prediction as a CSV.")
+            st.write("")
             report = pd.DataFrame([{**values, "Predicted_Exam_Score": round(score, 2)}])
             st.download_button(
                 "Download prediction (CSV)",
@@ -562,11 +591,8 @@ with tab_whatif:
             for holder, col in ((ca, a_col), (cb, b_col)):
                 with holder:
                     with st.container(border=True):
-                        st.markdown(
-                            f'<div class="card-marker"></div><div class="card-title">{label(col)}</div>'
-                            '<div class="card-sub">Predicted exam score</div>',
-                            unsafe_allow_html=True,
-                        )
+                        card_marker()
+                        card_head(label(col), "Predicted exam score")
                         st.altair_chart(whatif_chart(values, col, score), theme=None)
     except Exception as exc:  # noqa: BLE001
         st.warning("What-if charts are unavailable for this model.")
@@ -590,19 +616,13 @@ with tab_data:
         d1, d2 = st.columns(2, gap="large")
         with d1:
             with st.container(border=True):
-                st.markdown(
-                    '<div class="card-marker"></div><div class="card-title">Score distribution</div>'
-                    '<div class="card-sub">Number of students per exam score.</div>',
-                    unsafe_allow_html=True,
-                )
+                card_marker()
+                card_head("Score distribution", "Number of students per exam score.")
                 st.altair_chart(distribution_chart(score), theme=None)
         with d2:
             with st.container(border=True):
-                st.markdown(
-                    '<div class="card-marker"></div><div class="card-title">Numeric factors vs. score</div>'
-                    '<div class="card-sub">Pearson correlation with exam score.</div>',
-                    unsafe_allow_html=True,
-                )
+                card_marker()
+                card_head("Numeric factors vs. score", "Pearson correlation with exam score.")
                 st.altair_chart(correlation_chart(), theme=None)
 
 # ---------- About
@@ -610,11 +630,8 @@ with tab_about:
     a, b = st.columns(2, gap="large")
     with a:
         with st.container(border=True):
-            st.markdown(
-                '<div class="card-marker"></div><div class="card-title">How it works</div>'
-                '<div class="card-sub">From inputs to a prediction in four steps.</div>',
-                unsafe_allow_html=True,
-            )
+            card_marker()
+            card_head("How it works", "From inputs to a prediction in four steps.")
             st.markdown(
                 "1. **Input** — academic, lifestyle and background features.\n"
                 "2. **Preprocessing** — the saved scikit-learn pipeline encodes and scales the data.\n"
@@ -624,11 +641,8 @@ with tab_about:
             st.markdown("`Python` · `scikit-learn` · `Pandas` · `Joblib` · `Altair` · `Streamlit`")
     with b:
         with st.container(border=True):
-            st.markdown(
-                '<div class="card-marker"></div><div class="card-title">Responsible use</div>'
-                '<div class="card-sub">Please read before relying on a prediction.</div>',
-                unsafe_allow_html=True,
-            )
+            card_marker()
+            card_head("Responsible use", "Please read before relying on a prediction.")
             st.markdown(
                 "- Predictions are **estimates**, not guaranteed results.\n"
                 "- Accuracy depends on the training data's quality and representativeness.\n"
