@@ -10,7 +10,7 @@ An interactive machine learning app built with Python, scikit-learn and Streamli
 [![Python](https://img.shields.io/badge/Python-3.12-14201F?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![scikit-learn](https://img.shields.io/badge/scikit--learn-1.6.1-14201F?style=for-the-badge&logo=scikitlearn&logoColor=white)](https://scikit-learn.org/)
 
-[**🚀 Live Demo**](https://student-score-ai.streamlit.app/) · [**💻 Source Code**](https://github.com/AbdelrhmanAkl/student-score-ai) · [**🐞 Report an Issue**](https://github.com/AbdelrhmanAkl/student-score-ai/issues)
+[**🚀 Live Demo**](https://student-score-ai.streamlit.app/) · [**💻 Source Code**](https://github.com/AbdelrhmanAkl/student-score-ai) · [**💼 LinkedIn**](https://www.linkedin.com/in/abdelrahmanakl/) · [**🐞 Report an Issue**](https://github.com/AbdelrhmanAkl/student-score-ai/issues)
 
 <br>
 
@@ -243,6 +243,7 @@ The app is deployed on **Streamlit Community Cloud**.
 **Abdelrahman Akl**
 
 - GitHub: [@AbdelrhmanAkl](https://github.com/AbdelrhmanAkl)
+- LinkedIn: [linkedin.com/in/abdelrahmanakl](https://www.linkedin.com/in/abdelrahmanakl/)
 - Live Demo: [student-score-ai.streamlit.app](https://student-score-ai.streamlit.app/)
 
 ---
