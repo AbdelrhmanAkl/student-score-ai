@@ -10,12 +10,7 @@ An interactive machine learning app built with Python, scikit-learn and Streamli
 [![Python](https://img.shields.io/badge/Python-3.12-14201F?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![scikit-learn](https://img.shields.io/badge/scikit--learn-1.6.1-14201F?style=for-the-badge&logo=scikitlearn&logoColor=white)](https://scikit-learn.org/)
 
-[**🚀 Live Demo**](https://student-score-ai.streamlit.app/) · [**💻 Source Code**](https://github.com/AbdelrhmanAkl/student-score-ai) · [**💼 LinkedIn**](https://www.linkedin.com/in/abdelrahmanakl/) · [**🐞 Report an Issue**](https://github.com/AbdelrhmanAkl/student-score-ai/issues)
-
-<br>
-
-<!-- Replace with a real screenshot: save it as assets/preview.png -->
-<img src="assets/preview.png" alt="StudentScore AI — main dashboard" width="900">
+[**🚀 Live Demo**](https://student-score-ai.streamlit.app/) · [**💻 Source Code**](https://github.com/AbdelrhmanAkl/student-score-ai) · [**💼 LinkedIn**](https://www.linkedin.com/in/abdelrahmanakl/)
 
 </div>
 
@@ -25,7 +20,6 @@ An interactive machine learning app built with Python, scikit-learn and Streamli
 
 - [Overview](#overview)
 - [Features](#features)
-- [Screenshots](#screenshots)
 - [Tech Stack](#tech-stack)
 - [Dataset](#dataset)
 - [How It Works](#how-it-works)
@@ -58,21 +52,6 @@ The project demonstrates the full path from a notebook to a deployed product: da
 | 📈 | **What-if explorer** | Re-runs the model while varying one input to show how the prediction responds. |
 | 📊 | **Dataset insights** | Score distribution and correlation of numeric factors with the exam score. |
 | ⬇️ | **CSV export** | Download the current profile together with its prediction. |
-
-## Screenshots
-
-<!--
-  Add your screenshots to an `assets/` folder and keep these filenames,
-  or update the paths below.
--->
-
-| Prediction dashboard | What-if explorer |
-|---|---|
-| <img src="assets/preview.png" alt="Prediction dashboard" width="440"> | <img src="assets/what-if.png" alt="What-if explorer" width="440"> |
-
-| Dataset insights | Sidebar inputs |
-|---|---|
-| <img src="assets/dataset.png" alt="Dataset insights" width="440"> | <img src="assets/sidebar.png" alt="Sidebar inputs" width="440"> |
 
 ## Tech Stack
 
@@ -110,7 +89,7 @@ flowchart LR
     A[Student profile<br/>sidebar inputs] --> B[Pandas DataFrame]
     B --> C[Saved scikit-learn pipeline<br/>preprocessing + Ridge]
     C --> D[Predicted exam score]
-    D --> E[Dashboard<br/>score · percentile · drivers]
+    D --> E[Results view<br/>score · percentile · drivers]
     C --> F[What-if sweeps<br/>re-run the model per input]
 ```
 
@@ -147,7 +126,6 @@ The trained model is stored as a scikit-learn pipeline at `models/studentscore_r
 student-score-ai/
 ├── .streamlit/
 │   └── config.toml              # Theme and app settings
-├── assets/                      # README screenshots
 ├── data/
 │   └── StudentPerformanceFactors.csv
 ├── models/
